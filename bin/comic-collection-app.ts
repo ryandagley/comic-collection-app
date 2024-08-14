@@ -1,5 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
-import { ComicCollectionStack } from '../lib/comic-collection-stack';
+import { ComicCollectionStack } from '../lib/comic-collection-app-stack';
 
 const app = new cdk.App();
 
