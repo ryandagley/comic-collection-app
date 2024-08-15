@@ -6,8 +6,9 @@ import { PipelineStack } from '../lib/pipeline-stack';
 const app = new cdk.App();
 const environment = app.node.tryGetContext('environment') || 'dev';
 
-new ComicCollectionStack(app, `ComicCollectionStack-${environment}`, {
-  stackName: `ComicCollectionStack-${environment}`, // Consistent stack name for template, no suffix
+const stackName = `ComicCollectionStack`;
+
+new ComicCollectionStack(app, stackName, {
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
 });
 
