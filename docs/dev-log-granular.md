@@ -37,3 +37,6 @@ In this next section, I aim to establish a robust and automated deployment pipel
 4. Update the `bin/comic-collection-app.ts` to include the existing Comic Collection App stack and the new Pipeline Stack.
 5. Build `buildspec.yml` in the app directory.  This tells AWS CodeBuild how to build and test the app.
 6. PROBLEM!  Upon `cdk deploy`, I've run into what looks like permissions errors.  I don't intend to pass in environment variables, and I also intend to solve everything via CDK so I'll need to make an IAM role that has permissions to access Secrets Manager, but for now, I must take a break.  Committing to a feature branch for now.
+7. RESOLVED!  The issue wasn't actually in permissions.  After trying a few options with IAM, I noticed that in my code I was looking to pull Secrets from environment variables instead of from Secrets Manager.  In other words `const githubOwner = process.env.GITHUB_OWNER` instead of `const githubOwner = secret.secretValueFromJson('githubOwner').toString();`
+8. Pushed the code to GitHub and tried `cdk deploy` once again to a successful deployment of the CICD pipeline.
+9. PROBLEM!  The CICD Pipeline now fails as it is trying to install a `requirements.txt` file that I have not included.  Attempting to resolve this with `touch requirements.txt` into the root directory of the App.

@@ -9,4 +9,5 @@
 - Created Docs directory for collecting documents such as this Development Log.
 - Deployed a "Hello, World!" to the Dev environment and tested the app by accessing the API Gateway endpoint provided by CDK.
 - I'm satisfied with the Dev results thus far so I've deployed to the Prod environment as well.  Tested the app and all is well.
-- Tried, but hit a snag: Set up CI/CD pipeline and stored GitHub credentials obfuscating from public code.  I need to give appropriate permissions to access Secrets Manager.  I've run out of time for now. 
+- Set up CI/CD pipeline and stored GitHub credentials in Secrets Manager, obfuscating from public code. 
+- Pushing `buildspec.yml` and empty `requirements.txt` to repo.
