@@ -12,8 +12,9 @@ phases:
   build:
     commands:
       - npm run build  # Build the frontend
+      - echo "Environment is ${ENVIRONMENT}"
       - npx cdk synth --output=cdk.out # Synthesize CloudFormation templates
-      - mv cdk.out/ComicCollectionStack-${environment}.template.json cdk.out/ComicCollectionStack.template.json
+      - mv cdk.out/ComicCollectionStack-${ENVIRONMENT}.template.json cdk.out/ComicCollectionStack.template.json
       - ls cdk.out
       - npm run test  # Run some tests
   post_build:
