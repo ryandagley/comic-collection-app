@@ -1,0 +1,23 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 14
+      python: 3.8
+    commands:
+      - npm install -g aws-cdk
+      - npm install
+      - pip install -r requirements.txt  # for Python dependencies
+  build:
+    commands:
+      - npm run build  # Build the frontend
+      - npx cdk synth  # Synthesize CloudFormation templates
+      - npm run test  # Run some tests
+  post_build:
+    commands:
+      - echo Build completed on `date`
+artifacts:
+  files:
+    - '**/*'
+  discard-paths: yes
