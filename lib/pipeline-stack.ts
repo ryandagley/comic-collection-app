@@ -6,7 +6,6 @@ import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 
-
 export class PipelineStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -25,7 +24,8 @@ export class PipelineStack extends cdk.Stack {
     });
 
     const sourceOutput = new codepipeline.Artifact();
-    const buildOutput = new codepipeline.Artifact();
+    const buildOutputDev = new codepipeline.Artifact('BuildOutput_Dev');
+    const buildOutputProd = new codepipeline.Artifact('BuildOutput_Prod');
 
     // Source Stage: Pull code from GitHub
     const sourceAction = new codepipeline_actions.GitHubSourceAction({
@@ -37,8 +37,8 @@ export class PipelineStack extends cdk.Stack {
       branch: githubBranch,
     });
 
-    // Build Stage: CodeBuild to build and test the application
-    const buildProject = new codebuild.PipelineProject(this, 'BuildProject', {
+    // Build Stage: CodeBuild to build and test the application for Dev environment
+    const buildProjectDev = new codebuild.PipelineProject(this, 'BuildProjectDev', {
       environment: {
         buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
         computeType: codebuild.ComputeType.SMALL,
@@ -46,19 +46,21 @@ export class PipelineStack extends cdk.Stack {
       buildSpec: codebuild.BuildSpec.fromSourceFilename('buildspec.yml'),
     });
 
-    // Define the build action for the CodePipeline.  This defines components of the CodeBuild like Project.
-    const buildAction = new codepipeline_actions.CodeBuildAction({
-      actionName: 'CodeBuild',
-      project: buildProject,
+    const buildActionDev = new codepipeline_actions.CodeBuildAction({
+      actionName: 'CodeBuild_Dev',
+      project: buildProjectDev,
       input: sourceOutput,
-      outputs: [buildOutput],
+      outputs: [buildOutputDev],
+      environmentVariables: {
+        ENVIRONMENT: { value: 'dev' },
+      },
     });
 
     // Deploy to Dev Stage
     const deployDevAction = new codepipeline_actions.CloudFormationCreateUpdateStackAction({
       actionName: 'Deploy_Dev',
-      stackName: 'ComicCollectionStack',
-      templatePath: buildOutput.atPath('ComicCollectionStack.template.json'),
+      stackName: 'ComicCollectionStack-dev',
+      templatePath: buildOutputDev.atPath('ComicCollectionStack.template.json'),
       adminPermissions: true,
     });
 
@@ -68,11 +70,30 @@ export class PipelineStack extends cdk.Stack {
       runOrder: 2,
     });
 
+    // Build Stage: CodeBuild to build and test the application for Prod environment
+    const buildProjectProd = new codebuild.PipelineProject(this, 'BuildProjectProd', {
+      environment: {
+        buildImage: codebuild.LinuxBuildImage.STANDARD_5_0,
+        computeType: codebuild.ComputeType.SMALL,
+      },
+      buildSpec: codebuild.BuildSpec.fromSourceFilename('buildspec.yml'),
+    });
+
+    const buildActionProd = new codepipeline_actions.CodeBuildAction({
+      actionName: 'CodeBuild_Prod',
+      project: buildProjectProd,
+      input: sourceOutput,
+      outputs: [buildOutputProd],
+      environmentVariables: {
+        ENVIRONMENT: { value: 'prod' },
+      },
+    });
+
     // Deploy to Prod Stage
     const deployProdAction = new codepipeline_actions.CloudFormationCreateUpdateStackAction({
       actionName: 'Deploy_Prod',
-      stackName: 'ComicCollectionStack',
-      templatePath: buildOutput.atPath('ComicCollectionStack.template.json'),
+      stackName: 'ComicCollectionStack-prod',
+      templatePath: buildOutputProd.atPath('ComicCollectionStack.template.json'),
       adminPermissions: true,
     });
 
@@ -86,8 +107,8 @@ export class PipelineStack extends cdk.Stack {
           actions: [sourceAction],
         },
         {
-          stageName: 'Build',
-          actions: [buildAction],
+          stageName: 'Build_Dev',
+          actions: [buildActionDev],
         },
         {
           stageName: 'Deploy_Dev',
@@ -96,6 +117,10 @@ export class PipelineStack extends cdk.Stack {
         {
           stageName: 'Approve',
           actions: [manualApprovalAction],
+        },
+        {
+          stageName: 'Build_Prod',
+          actions: [buildActionProd],
         },
         {
           stageName: 'Deploy_Prod',
