@@ -43,3 +43,6 @@ In this next section, I aim to establish a robust and automated deployment pipel
 10. RESOLVED! Fixed up the `requirements.txt` issue.  As expected, it just needed to be there.
 11. PROBLEM! CodePipeline can't find `ComicCollectionStack.template.json`.  I needed to add it to the buildspec as well as a base-directory.  Also needed to give instruction on where to synthesize CFN templates with `- npx cdk synth --output=cdk.out`  I'm glad this is on an approval based pipeline, because I'm struggling on this issue!
 12. PROBLEM continues - I've decided to give the Dev and Prod templates a consistent name instead of using the `-dev` and `-prod` suffixes.  I assume because I'm using a manual approval step, I don't have to be concerned that updates to the Dev pipeline stack would overwrite Prod without approval.  Running `cdk deploy PipelineStack` again and restarting the CodePipeline.
+
+**Date:** 2024-08-15 <br>
+13. RESOLVED!  I updated the app.ts to use Environment Contexts, but keep naming consistent.  Essentially, context is NAME-dev, but the Stack Name is NAME.  To get this right, the Dev stack and Prod stack need to be deployed separately, which feels safer anyway.

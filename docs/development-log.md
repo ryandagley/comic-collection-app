@@ -11,3 +11,6 @@
 - I'm satisfied with the Dev results thus far so I've deployed to the Prod environment as well.  Tested the app and all is well.
 - Set up CI/CD pipeline and stored GitHub credentials in Secrets Manager, obfuscating from public code. 
 - Pushing `buildspec.yml` and empty `requirements.txt` to repo.
+
+- **Date:** 2024-08-15
+- Bug fixes on Dev/Prod environment stack issue.
