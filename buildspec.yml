@@ -3,7 +3,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      nodejs: 18
+      nodejs: 18  # Ensure you're using a supported Node.js version
       python: 3.8
     commands:
       - npm install -g aws-cdk
@@ -13,16 +13,15 @@ phases:
     commands:
       - npm run build  # Build the frontend
       - echo "Environment is ${ENVIRONMENT}"
-      - npx cdk synth --output=cdk.out # Synthesize CloudFormation templates
-      - mv cdk.out/ComicCollectionStack-${ENVIRONMENT}.template.json cdk.out/ComicCollectionStack.template.json
-      - ls cdk.out
+      - npx cdk synth --output=cdk.out  # Synthesize CloudFormation templates
+      - ls cdk.out  # List contents for debugging
       - npm run test  # Run some tests
   post_build:
     commands:
       - echo Build completed on `date`
 artifacts:
   files:
-    - 'ComicCollectionStack.template.json'
+    - 'cdk.out/ComicCollectionStack*.template.json'
     - '**/*'
   base-directory: 'cdk.out'
   discard-paths: yes
