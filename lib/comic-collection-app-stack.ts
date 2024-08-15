@@ -11,7 +11,7 @@ export class ComicCollectionStack extends cdk.Stack {
     super(scope, id, props);
 
     // Get environment context
-    const environment = this.node.tryGetContext('environment') || 'dev';
+    const environment = this.node.tryGetContext('environment') || process.env.ENVIRONMENT || 'dev';
 
     // S3 Bucket for storing comic images - private bucket
     const bucketName = `comic-collection-${environment}-bucket`;
@@ -60,4 +60,3 @@ export class ComicCollectionStack extends cdk.Stack {
     });
   }
 }
-
