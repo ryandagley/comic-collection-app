@@ -19,7 +19,7 @@ phases:
       - echo Build completed on `date`
 artifacts:
   files:
-    - 'cdk.out/ComicCollectionStack.template.json'
+    - 'ComicCollectionStack.template.json'
     - '**/*'
   base-directory: 'cdk.out'
   discard-paths: yes
