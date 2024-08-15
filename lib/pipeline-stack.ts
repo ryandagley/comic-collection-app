@@ -4,16 +4,20 @@ import * as codepipeline from 'aws-cdk-lib/aws-codepipeline';
 import * as codepipeline_actions from 'aws-cdk-lib/aws-codepipeline-actions';
 import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
+
 
 export class PipelineStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const githubOwner = process.env.GITHUB_OWNER || this.node.tryGetContext('githubOwner');
-    const githubRepo = process.env.GITHUB_REPO || this.node.tryGetContext('githubRepo');
-    const githubBranch = process.env.GITHUB_BRANCH || this.node.tryGetContext('githubBranch') || 'main';
+    const secret = secretsmanager.Secret.fromSecretNameV2(this, 'GitHubSecret', 'comicsAppAuth');
 
-    const githubToken = cdk.SecretValue.secretsManager('comicsAppAuth');
+    // Parse the secret JSON
+    const githubOwner = secret.secretValueFromJson('githubOwner').unsafeUnwrap();
+    const githubRepo = secret.secretValueFromJson('githubRepo').unsafeUnwrap();
+    const githubToken = secret.secretValueFromJson('githubToken');
+    const githubBranch = secret.secretValueFromJson('githubBranch').unsafeUnwrap() || 'main';
 
     const artifactBucket = new s3.Bucket(this, 'PipelineArtifactBucket', {
       versioned: true,
