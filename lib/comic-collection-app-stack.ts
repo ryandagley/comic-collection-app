@@ -11,25 +11,25 @@ export class ComicCollectionStack extends cdk.Stack {
     super(scope, id, props);
 
     // Get environment context
-    const environment = this.node.tryGetContext('environment');
+    const environment = this.node.tryGetContext('environment') || 'dev';
 
     // S3 Bucket for storing comic images - private bucket
     const bucketName = `comic-collection-${environment}-bucket`;
-    const websiteBucket = new s3.Bucket(this, 'WebsiteBucket', {
+    const websiteBucket = new s3.Bucket(this, `WebsiteBucket-${environment}`, {
       bucketName: bucketName,
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,  // Block all public access
       removalPolicy: environment === 'prod' ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
     });
 
     // DynamoDB Table for storing comic metadata
-    const comicsTable = new dynamodb.Table(this, 'ComicsTable', {
+    const comicsTable = new dynamodb.Table(this, `ComicsTable-${environment}`, {
       tableName: `ComicsTable-${environment}`,
       partitionKey: { name: 'comicId', type: dynamodb.AttributeType.STRING },
       removalPolicy: environment === 'prod' ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
     });
 
     // Lambda Function for handling backend logic, including generating pre-signed URLs
-    const comicsLambda = new lambda.Function(this, 'ComicsLambda', {
+    const comicsLambda = new lambda.Function(this, `ComicsLambda-${environment}`, {
       functionName: `ComicsLambda-${environment}`,
       runtime: lambda.Runtime.PYTHON_3_8,
       code: lambda.Code.fromAsset('lambda'),
@@ -45,9 +45,19 @@ export class ComicCollectionStack extends cdk.Stack {
     comicsTable.grantReadWriteData(comicsLambda);
 
     // API Gateway to expose Lambda function as a REST API
-    new apigateway.LambdaRestApi(this, 'ComicsApi', {
+    const api = new apigateway.LambdaRestApi(this, `ComicsApi-${environment}`, {
       restApiName: `ComicsApi-${environment}`,
       handler: comicsLambda,
+      deployOptions: {
+        stageName: environment,  // Explicitly set the stage name to the environment (e.g., 'dev' or 'prod')
+      },
+    });
+
+    // Output the API Gateway URL for this environment
+    new cdk.CfnOutput(this, `ApiUrl-${environment}`, {
+      value: api.url,
+      description: `The URL of the API Gateway for ${environment} environment`,
     });
   }
 }
+
