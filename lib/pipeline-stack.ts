@@ -57,7 +57,7 @@ export class PipelineStack extends cdk.Stack {
     // Deploy to Dev Stage
     const deployDevAction = new codepipeline_actions.CloudFormationCreateUpdateStackAction({
       actionName: 'Deploy_Dev',
-      stackName: 'ComicCollectionStack-dev',
+      stackName: 'ComicCollectionStack',
       templatePath: buildOutput.atPath('ComicCollectionStack.template.json'),
       adminPermissions: true,
     });
@@ -71,7 +71,7 @@ export class PipelineStack extends cdk.Stack {
     // Deploy to Prod Stage
     const deployProdAction = new codepipeline_actions.CloudFormationCreateUpdateStackAction({
       actionName: 'Deploy_Prod',
-      stackName: 'ComicCollectionStack-prod',
+      stackName: 'ComicCollectionStack',
       templatePath: buildOutput.atPath('ComicCollectionStack.template.json'),
       adminPermissions: true,
     });
