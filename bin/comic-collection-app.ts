@@ -6,7 +6,7 @@ import { PipelineStack } from '../lib/pipeline-stack';
 const app = new cdk.App();
 const environment = app.node.tryGetContext('environment') || 'dev';
 
-new ComicCollectionStack(app, `ComicCollectionStack-${environment}`, {
+new ComicCollectionStack(app, `ComicCollectionStack`, {
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
 });
 
