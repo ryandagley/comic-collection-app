@@ -14,7 +14,7 @@ export class ComicCollectionStack extends cdk.Stack {
 
     // S3 Bucket for storing comic images - private bucket
     const bucketName = `comic-collection-${environment}-bucket`;
-    let websiteBucket;
+    let websiteBucket: s3.IBucket;
     try {
       websiteBucket = s3.Bucket.fromBucketName(this, `ImportedWebsiteBucket-${environment}`, bucketName);
     } catch (e) {
@@ -27,7 +27,7 @@ export class ComicCollectionStack extends cdk.Stack {
 
     // DynamoDB Table for storing comic metadata
     const tableName = `ComicsTable-${environment}`;
-    let comicsTable;
+    let comicsTable: dynamodb.ITable;
     try {
       comicsTable = dynamodb.Table.fromTableName(this, `ImportedComicsTable-${environment}`, tableName);
     } catch (e) {
@@ -65,6 +65,10 @@ export class ComicCollectionStack extends cdk.Stack {
       comicsTable.grantReadWriteData(comicsLambda);
     }
 
+    // Ensure the Lambda function is created before the API Gateway is created
+    comicsLambda.node.addDependency(websiteBucket);
+    comicsLambda.node.addDependency(comicsTable);
+
     // API Gateway to expose Lambda function as a REST API
     const api = new apigateway.LambdaRestApi(this, `ComicsApi-${environment}`, {
       restApiName: `ComicsApi-${environment}`,
@@ -73,6 +77,9 @@ export class ComicCollectionStack extends cdk.Stack {
         stageName: environment,
       },
     });
+
+    // Ensure API Gateway is created after the Lambda function
+    api.node.addDependency(comicsLambda);
 
     // Output the API Gateway URL for this environment
     new cdk.CfnOutput(this, `ApiUrl-${environment}`, {
