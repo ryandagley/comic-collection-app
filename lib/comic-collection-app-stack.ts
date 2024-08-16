@@ -15,34 +15,53 @@ export class ComicCollectionStack extends cdk.Stack {
 
     // S3 Bucket for storing comic images - private bucket
     const bucketName = `comic-collection-${environment}-bucket`;
-    const websiteBucket = new s3.Bucket(this, `WebsiteBucket-${environment}`, {
-      bucketName: bucketName,
-      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,  // Block all public access
-      removalPolicy: environment === 'prod' ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
-    });
+    let websiteBucket;
+    try {
+      websiteBucket = s3.Bucket.fromBucketName(this, `ImportedWebsiteBucket-${environment}`, bucketName);
+    } catch (e) {
+      websiteBucket = new s3.Bucket(this, `WebsiteBucket-${environment}`, {
+        bucketName: bucketName,
+        blockPublicAccess: BlockPublicAccess.BLOCK_ALL,  // Block all public access
+        removalPolicy: environment === 'prod' ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
+      });
+    }
 
     // DynamoDB Table for storing comic metadata
-    const comicsTable = new dynamodb.Table(this, `ComicsTable-${environment}`, {
-      tableName: `ComicsTable-${environment}`,
-      partitionKey: { name: 'comicId', type: dynamodb.AttributeType.STRING },
-      removalPolicy: environment === 'prod' ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
-    });
+    const tableName = `ComicsTable-${environment}`;
+    let comicsTable;
+    try {
+      comicsTable = dynamodb.Table.fromTableName(this, `ImportedComicsTable-${environment}`, tableName);
+    } catch (e) {
+      comicsTable = new dynamodb.Table(this, `ComicsTable-${environment}`, {
+        tableName: tableName,
+        partitionKey: { name: 'comicId', type: dynamodb.AttributeType.STRING },
+        removalPolicy: environment === 'prod' ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY,
+      });
+    }
 
-    // Lambda Function for handling backend logic, including generating pre-signed URLs
-    const comicsLambda = new lambda.Function(this, `ComicsLambda-${environment}`, {
-      functionName: `ComicsLambda-${environment}`,
-      runtime: lambda.Runtime.PYTHON_3_8,
-      code: lambda.Code.fromAsset('lambda'),
-      handler: 'app.handler',
-      environment: {
-        BUCKET_NAME: websiteBucket.bucketName,
-        TABLE_NAME: comicsTable.tableName,
-      },
-    });
+    // Lambda Function for handling backend logic
+    const lambdaName = `ComicsLambda-${environment}`;
+    let comicsLambda;
+    try {
+      comicsLambda = lambda.Function.fromFunctionName(this, `ImportedComicsLambda-${environment}`, lambdaName);
+    } catch (e) {
+      comicsLambda = new lambda.Function(this, `ComicsLambda-${environment}`, {
+        functionName: lambdaName,
+        runtime: lambda.Runtime.PYTHON_3_8,
+        code: lambda.Code.fromAsset('lambda'),
+        handler: 'app.handler',
+        environment: {
+          BUCKET_NAME: websiteBucket.bucketName,
+          TABLE_NAME: comicsTable.tableName,
+        },
+      });
+    }
 
     // Grant the Lambda function permission to read/write from the S3 bucket and the DynamoDB table
-    websiteBucket.grantReadWrite(comicsLambda);
-    comicsTable.grantReadWriteData(comicsLambda);
+    if (!comicsLambda) {
+      websiteBucket.grantReadWrite(comicsLambda);
+      comicsTable.grantReadWriteData(comicsLambda);
+    }
 
     // API Gateway to expose Lambda function as a REST API
     const api = new apigateway.LambdaRestApi(this, `ComicsApi-${environment}`, {
