@@ -40,10 +40,15 @@ export class ComicCollectionStack extends cdk.Stack {
 
     // Lambda Function for handling backend logic
     const lambdaName = `ComicsLambda-${environment}`;
-    let comicsLambda;
+    let comicsLambda: lambda.IFunction;
+
     try {
+      // Try to import the existing Lambda function
       comicsLambda = lambda.Function.fromFunctionName(this, `ImportedComicsLambda-${environment}`, lambdaName);
+      console.log(`Lambda function ${lambdaName} exists and was imported.`);
     } catch (e) {
+      // If the Lambda function does not exist, create a new one
+      console.warn(`Lambda function ${lambdaName} not found. Creating a new one.`);
       comicsLambda = new lambda.Function(this, `ComicsLambda-${environment}`, {
         functionName: lambdaName,
         runtime: lambda.Runtime.PYTHON_3_8,
