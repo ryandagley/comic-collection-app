@@ -44,6 +44,9 @@ export class PipelineStack extends cdk.Stack {
         computeType: codebuild.ComputeType.SMALL,
       },
       buildSpec: codebuild.BuildSpec.fromSourceFilename('buildspec.yml'),
+      environmentVariables: {
+        ENVIRONMENT: { value: 'dev' },
+      },
     });
 
     const buildActionDev = new codepipeline_actions.CodeBuildAction({
@@ -51,9 +54,6 @@ export class PipelineStack extends cdk.Stack {
       project: buildProjectDev,
       input: sourceOutput,
       outputs: [buildOutputDev],
-      environmentVariables: {
-        ENVIRONMENT: { value: 'dev' },
-      },
     });
 
     // Deploy to Dev Stage
@@ -77,6 +77,9 @@ export class PipelineStack extends cdk.Stack {
         computeType: codebuild.ComputeType.SMALL,
       },
       buildSpec: codebuild.BuildSpec.fromSourceFilename('buildspec.yml'),
+      environmentVariables: {
+        ENVIRONMENT: { value: 'prod' },
+      },
     });
 
     const buildActionProd = new codepipeline_actions.CodeBuildAction({
@@ -84,9 +87,6 @@ export class PipelineStack extends cdk.Stack {
       project: buildProjectProd,
       input: sourceOutput,
       outputs: [buildOutputProd],
-      environmentVariables: {
-        ENVIRONMENT: { value: 'prod' },
-      },
     });
 
     // Deploy to Prod Stage

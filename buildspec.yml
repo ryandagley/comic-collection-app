@@ -13,7 +13,7 @@ phases:
     commands:
       - npm run build  # Build the frontend
       - echo "Environment is ${ENVIRONMENT}"
-      - npx cdk synth --output=cdk.out  # Synthesize CloudFormation templates
+      - npx cdk synth --output=cdk.out --context environment=${ENVIRONMENT}  # Synthesize CloudFormation templates with environment context
       - ls cdk.out  # List contents for debugging
       - npm run test  # Run some tests
   post_build:
